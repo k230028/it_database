@@ -1,4 +1,5 @@
 -- 공통 게시판 인덱스 생성
+ALTER SESSION SET CURRENT_SCHEMA = ITPAPP;
 
 -- 게시물 목록 조회 (게시판별 + 소프트삭제 + 화면여부 + 상위고정 + 등록일시)
 CREATE INDEX IDX_CBLBCM_LIST   ON TAAABB_CBLBCM (BLB_MNG_NO, DEL_YN, SRE_YN, HRK_FXN_YN, FST_ENR_DTM);

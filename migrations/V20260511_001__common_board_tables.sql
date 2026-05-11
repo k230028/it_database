@@ -1,4 +1,5 @@
 -- 공통 게시판 메타·본문·댓글·변경로그 테이블 생성
+ALTER SESSION SET CURRENT_SCHEMA = ITPAPP;
 
 -- 1) 게시판 메타 (TAAABB_CBLBMM)
 CREATE TABLE TAAABB_CBLBMM (
