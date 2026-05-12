@@ -1,0 +1,99 @@
+-- ============================================================
+-- V20260512_011: 관리번호 구분자 통일 (Underscore → Dash)
+--
+-- 배경:
+--   일부 관리번호가 Underscore(_) 형식으로 생성되어 있어
+--   BLBM-2026-0001, PRJ-2026-0001 등 기존 Dash(-) 표준과 불일치.
+--
+-- 비고:
+--   대상 테이블(CAPPLM, BCOSTM, BPROJM 등)에 DB 레벨 FK 제약이 없으므로
+--   PL/SQL 없이 UPDATE 순서(PK 우선 → FK 후순)로 처리합니다.
+--   (Flyway는 PL/SQL BEGIN...END;/ 블록을 기본 파서로 처리 불가 → ORA-00900)
+--
+-- 변환 대상 (컬럼 → 패턴):
+--   TAAABB_CAPPLM.APF_MNG_NO   : APF_YYYYNNNNNNNN → APF-YYYY-NNNNNNNN  (PK)
+--   TAAABB_CAPPLA.APF_MNG_NO   : 동일  (FK)
+--   TAAABB_CAPPLA.APF_REL_SNO  : APPL_NNN...      → APPL-NNN...
+--   TAAABB_CAPPLA.ORC_PK_VL    : COST_/PRJ_ 참조값 보정
+--   TAAABB_CDECIM.DCD_MNG_NO   : APF_YYYYNNNNNNNN → APF-YYYY-NNNNNNNN  (FK)
+--   TAAABB_BCOSTM.IT_MNGC_NO   : COST_YYYY_NNNN   → COST-YYYY-NNNN    (PK)
+--   TAAABB_BTERMM.IT_MNGC_NO   : 동일  (FK)
+--   TAAABB_BTERMM.TMN_MNG_NO   : TER_YYYY_NNNN    → TER-YYYY-NNNN
+--   TAAABB_BPROJM.PRJ_MNG_NO   : PRJ_YYYY_NNNN    → PRJ-YYYY-NNNN     (PK, 방어적)
+--   TAAABB_BITEMM.PRJ_MNG_NO   : 동일  (FK, 방어적)
+--   TAAABB_BPROJA.PRJ_MNG_NO   : 동일  (FK, 방어적)
+-- ============================================================
+
+ALTER SESSION SET CURRENT_SCHEMA = ITPAPP;
+
+-- ============================================================
+-- STEP 1: PK 컬럼 변환 (FK 참조보다 먼저 처리)
+-- ============================================================
+
+-- 1-1. CAPPLM.APF_MNG_NO (PK): APF_YYYYNNNNNNNN → APF-YYYY-NNNNNNNN
+UPDATE TAAABB_CAPPLM
+SET APF_MNG_NO = REGEXP_REPLACE(APF_MNG_NO, '^APF_([0-9]{4})([0-9]{8})$', 'APF-\1-\2')
+WHERE REGEXP_LIKE(APF_MNG_NO, '^APF_[0-9]{12}$');
+
+-- 1-2. BCOSTM.IT_MNGC_NO (PK): COST_YYYY_NNNN → COST-YYYY-NNNN
+UPDATE TAAABB_BCOSTM
+SET IT_MNGC_NO = REGEXP_REPLACE(IT_MNGC_NO, '^COST_([0-9]{4})_([0-9]+)$', 'COST-\1-\2')
+WHERE REGEXP_LIKE(IT_MNGC_NO, '^COST_[0-9]{4}_[0-9]+$');
+
+-- 1-3. BPROJM.PRJ_MNG_NO (PK, 방어적): PRJ_YYYY_NNNN → PRJ-YYYY-NNNN
+UPDATE TAAABB_BPROJM
+SET PRJ_MNG_NO = REGEXP_REPLACE(PRJ_MNG_NO, '^PRJ_([0-9]{4})_([0-9]+)$', 'PRJ-\1-\2')
+WHERE REGEXP_LIKE(PRJ_MNG_NO, '^PRJ_[0-9]{4}_[0-9]+$');
+
+-- 1-4. CAPPLA.APF_REL_SNO: APPL_NNN... → APPL-NNN...
+UPDATE TAAABB_CAPPLA
+SET APF_REL_SNO = REGEXP_REPLACE(APF_REL_SNO, '^APPL_([0-9]+)$', 'APPL-\1')
+WHERE REGEXP_LIKE(APF_REL_SNO, '^APPL_[0-9]+$');
+
+-- ============================================================
+-- STEP 2: FK 컬럼 변환
+-- ============================================================
+
+-- 2-1. CAPPLA.APF_MNG_NO (FK): APF_YYYYNNNNNNNN → APF-YYYY-NNNNNNNN
+UPDATE TAAABB_CAPPLA
+SET APF_MNG_NO = REGEXP_REPLACE(APF_MNG_NO, '^APF_([0-9]{4})([0-9]{8})$', 'APF-\1-\2')
+WHERE REGEXP_LIKE(APF_MNG_NO, '^APF_[0-9]{12}$');
+
+-- 2-2. CAPPLA.ORC_PK_VL → BCOSTM 참조: COST_YYYY_NNNN → COST-YYYY-NNNN
+UPDATE TAAABB_CAPPLA
+SET ORC_PK_VL = REGEXP_REPLACE(ORC_PK_VL, '^COST_([0-9]{4})_([0-9]+)$', 'COST-\1-\2')
+WHERE ORC_TB_CD = 'BCOSTM'
+  AND REGEXP_LIKE(ORC_PK_VL, '^COST_[0-9]{4}_[0-9]+$');
+
+-- 2-3. CAPPLA.ORC_PK_VL → BPROJM 참조 (방어적): PRJ_YYYY_NNNN → PRJ-YYYY-NNNN
+UPDATE TAAABB_CAPPLA
+SET ORC_PK_VL = REGEXP_REPLACE(ORC_PK_VL, '^PRJ_([0-9]{4})_([0-9]+)$', 'PRJ-\1-\2')
+WHERE ORC_TB_CD = 'BPROJM'
+  AND REGEXP_LIKE(ORC_PK_VL, '^PRJ_[0-9]{4}_[0-9]+$');
+
+-- 2-4. CDECIM.DCD_MNG_NO (FK): APF_YYYYNNNNNNNN → APF-YYYY-NNNNNNNN
+UPDATE TAAABB_CDECIM
+SET DCD_MNG_NO = REGEXP_REPLACE(DCD_MNG_NO, '^APF_([0-9]{4})([0-9]{8})$', 'APF-\1-\2')
+WHERE REGEXP_LIKE(DCD_MNG_NO, '^APF_[0-9]{12}$');
+
+-- 2-5. BTERMM.IT_MNGC_NO (FK): COST_YYYY_NNNN → COST-YYYY-NNNN
+UPDATE TAAABB_BTERMM
+SET IT_MNGC_NO = REGEXP_REPLACE(IT_MNGC_NO, '^COST_([0-9]{4})_([0-9]+)$', 'COST-\1-\2')
+WHERE REGEXP_LIKE(IT_MNGC_NO, '^COST_[0-9]{4}_[0-9]+$');
+
+-- 2-6. BTERMM.TMN_MNG_NO: TER_YYYY_NNNN → TER-YYYY-NNNN
+UPDATE TAAABB_BTERMM
+SET TMN_MNG_NO = REGEXP_REPLACE(TMN_MNG_NO, '^TER_([0-9]{4})_([0-9]+)$', 'TER-\1-\2')
+WHERE REGEXP_LIKE(TMN_MNG_NO, '^TER_[0-9]{4}_[0-9]+$');
+
+-- 2-7. BITEMM.PRJ_MNG_NO (FK, 방어적): PRJ_YYYY_NNNN → PRJ-YYYY-NNNN
+UPDATE TAAABB_BITEMM
+SET PRJ_MNG_NO = REGEXP_REPLACE(PRJ_MNG_NO, '^PRJ_([0-9]{4})_([0-9]+)$', 'PRJ-\1-\2')
+WHERE REGEXP_LIKE(PRJ_MNG_NO, '^PRJ_[0-9]{4}_[0-9]+$');
+
+-- 2-8. BPROJA.PRJ_MNG_NO (FK, 방어적): PRJ_YYYY_NNNN → PRJ-YYYY-NNNN
+UPDATE TAAABB_BPROJA
+SET PRJ_MNG_NO = REGEXP_REPLACE(PRJ_MNG_NO, '^PRJ_([0-9]{4})_([0-9]+)$', 'PRJ-\1-\2')
+WHERE REGEXP_LIKE(PRJ_MNG_NO, '^PRJ_[0-9]{4}_[0-9]+$');
+
+COMMIT;
