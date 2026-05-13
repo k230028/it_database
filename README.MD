@@ -20,6 +20,18 @@ Oracle Database 21c Express Edition Release 21.0.0.0.0 - Production
 Version 21.3.0.0.0
 ```
 
+#### 애플리케이션 계정 접속
+```powershell
+C:\it>.\it_database\connect-db.ps1
+```
+
+cmd.exe 환경에서는 아래 배치 래퍼를 사용할 수 있습니다.
+```bat
+C:\it>.\it_database\connect-db.bat
+```
+
+기본 접속 대상은 `ITPAPP@127.0.0.1:1521/XEPDB1`이며, Spring Boot 개발 설정과 동일합니다.
+
 #### PDB 또는 CDB 여부 확인 후 PDB가 아닌 경우 PDB로 전환
 ```bash
 SQL> SHOW CON_NAME;
