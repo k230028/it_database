@@ -1,7 +1,0 @@
--- V20260521_001__fix_sno_number22_phase1.sql
--- TOK_SNO, LGN_SNO: NUMBER(19,0) -> NUMBER(22)
--- Long(Java)은 최대 9.2×10^18로 NUMBER(22) 내에 포함됨; 기존 데이터 그대로 유지.
--- Java 엔티티 변경 없음 (Long 타입 유지).
-
-ALTER TABLE ITPAPP.TAAABB_CRTOKM MODIFY (TOK_SNO NUMBER(22));
-ALTER TABLE ITPAPP.TAAABB_CLOGNH MODIFY (LGN_SNO NUMBER(22));
