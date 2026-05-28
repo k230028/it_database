@@ -1,0 +1,107 @@
+-- =====================================================================
+-- V20260528_002__RefactorCdecimColumns.sql
+--
+-- TPRMPP_CDECIM 컬럼 리팩터링
+--   DCD_SQN  (NUMBER(2))   → DCR_SQN_SNO (NUMBER(9))  [PK2]
+--   DCD_ENO  (VARCHAR2(10))→ DCR_ENO     (VARCHAR2(32))
+--   DCD_TP   (VARCHAR2(32))→ DCD_TP_C    (VARCHAR2(2))  [라벨→코드]
+--   DCD_DT   (DATE)        → DCD_DTM     (DATE)
+--   DCD_OPNN (VARCHAR2(1000))→DCR_OPNN_CONE(VARCHAR2(2000))
+--   DCD_STS  (VARCHAR2(32))→ (삭제)
+--
+-- 사전 조건: V20260528_001 까지 적용 완료
+-- 멱등성  : 각 컬럼이 이미 변경된 경우 해당 단계를 건너뜁니다.
+-- =====================================================================
+
+-- 1. DCD_SQN → DCR_SQN_SNO (NUMBER(9) NOT NULL)
+DECLARE
+  v_cnt NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO v_cnt
+    FROM user_tab_columns
+   WHERE table_name = 'TPRMPP_CDECIM' AND column_name = 'DCD_SQN';
+  IF v_cnt > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM RENAME COLUMN DCD_SQN TO DCR_SQN_SNO';
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM MODIFY DCR_SQN_SNO NUMBER(9) NOT NULL';
+  ELSE
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM MODIFY DCR_SQN_SNO NUMBER(9) NOT NULL';
+  END IF;
+END;
+/
+
+-- 2. DCD_ENO → DCR_ENO (VARCHAR2(32))
+DECLARE
+  v_cnt NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO v_cnt
+    FROM user_tab_columns
+   WHERE table_name = 'TPRMPP_CDECIM' AND column_name = 'DCD_ENO';
+  IF v_cnt > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM RENAME COLUMN DCD_ENO TO DCR_ENO';
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM MODIFY DCR_ENO VARCHAR2(32)';
+  ELSE
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM MODIFY DCR_ENO VARCHAR2(32)';
+  END IF;
+END;
+/
+
+-- 3. DCD_TP (VARCHAR2(32)) → DCD_TP_C (VARCHAR2(2))
+--    라벨 컬럼을 코드 컬럼으로 교체: 신규 컬럼 추가 후 기존 컬럼 삭제
+DECLARE
+  v_old NUMBER;
+  v_new NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO v_old
+    FROM user_tab_columns
+   WHERE table_name = 'TPRMPP_CDECIM' AND column_name = 'DCD_TP';
+  SELECT COUNT(*) INTO v_new
+    FROM user_tab_columns
+   WHERE table_name = 'TPRMPP_CDECIM' AND column_name = 'DCD_TP_C';
+  IF v_old > 0 AND v_new = 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM ADD DCD_TP_C VARCHAR2(2)';
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM DROP COLUMN DCD_TP';
+  END IF;
+END;
+/
+
+-- 4. DCD_DT → DCD_DTM
+DECLARE
+  v_cnt NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO v_cnt
+    FROM user_tab_columns
+   WHERE table_name = 'TPRMPP_CDECIM' AND column_name = 'DCD_DT';
+  IF v_cnt > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM RENAME COLUMN DCD_DT TO DCD_DTM';
+  END IF;
+END;
+/
+
+-- 5. DCD_OPNN (VARCHAR2(1000)) → DCR_OPNN_CONE (VARCHAR2(2000))
+DECLARE
+  v_cnt NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO v_cnt
+    FROM user_tab_columns
+   WHERE table_name = 'TPRMPP_CDECIM' AND column_name = 'DCD_OPNN';
+  IF v_cnt > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM RENAME COLUMN DCD_OPNN TO DCR_OPNN_CONE';
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM MODIFY DCR_OPNN_CONE VARCHAR2(2000)';
+  ELSE
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM MODIFY DCR_OPNN_CONE VARCHAR2(2000)';
+  END IF;
+END;
+/
+
+-- 6. DCD_STS (VARCHAR2(32)) 삭제 (DCD_STS_C 로 대체)
+DECLARE
+  v_cnt NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO v_cnt
+    FROM user_tab_columns
+   WHERE table_name = 'TPRMPP_CDECIM' AND column_name = 'DCD_STS';
+  IF v_cnt > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM DROP COLUMN DCD_STS';
+  END IF;
+END;
+/

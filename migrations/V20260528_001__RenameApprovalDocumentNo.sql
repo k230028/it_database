@@ -1,0 +1,43 @@
+-- =====================================================================
+-- V20260528_001__RenameApprovalDocumentNo.sql
+--
+-- 신청서 식별번호 컬럼명 표준화
+--   TPRMPP_CAPPLM : APF_MNG_NO(32) → APF_DCM_NO(64)
+--   TPRMPP_CDECIM : DCD_MNG_NO(32) → APF_DCM_NO(64)
+--
+-- 사전 조건: V20260525_005 까지 적용 완료
+-- 멱등성  : 컬럼이 이미 변경된 경우 RENAME을 건너뜁니다.
+-- =====================================================================
+
+-- 1. TPRMPP_CAPPLM: APF_MNG_NO → APF_DCM_NO
+DECLARE
+  v_cnt NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO v_cnt
+    FROM user_tab_columns
+   WHERE table_name = 'TPRMPP_CAPPLM' AND column_name = 'APF_MNG_NO';
+  IF v_cnt > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM RENAME COLUMN APF_MNG_NO TO APF_DCM_NO';
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM MODIFY APF_DCM_NO VARCHAR2(64) NOT NULL';
+  ELSE
+    -- 이미 APF_DCM_NO인 경우 길이만 확장 (이미 64면 무시됨)
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM MODIFY APF_DCM_NO VARCHAR2(64) NOT NULL';
+  END IF;
+END;
+/
+
+-- 2. TPRMPP_CDECIM: DCD_MNG_NO → APF_DCM_NO
+DECLARE
+  v_cnt NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO v_cnt
+    FROM user_tab_columns
+   WHERE table_name = 'TPRMPP_CDECIM' AND column_name = 'DCD_MNG_NO';
+  IF v_cnt > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM RENAME COLUMN DCD_MNG_NO TO APF_DCM_NO';
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM MODIFY APF_DCM_NO VARCHAR2(64) NOT NULL';
+  ELSE
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CDECIM MODIFY APF_DCM_NO VARCHAR2(64) NOT NULL';
+  END IF;
+END;
+/

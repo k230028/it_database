@@ -1,0 +1,263 @@
+-- =============================================================================
+-- V20260528_003__RefactorCapplmColumns.sql
+-- TPRMPP_CAPPLM 컬럼 리팩터링 및 APF_PRG_STS_C 코드값 2자리 전환
+-- TPRMPP_CAPPLL (로그 테이블) 동기 반영
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- 1단계: TPRMPP_CAPPLM 컬럼 리네임
+-- -----------------------------------------------------------------------------
+DECLARE
+  v_count NUMBER;
+BEGIN
+  -- APF_STS_C → APF_PRG_STS_C
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'APF_STS_C';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM RENAME COLUMN APF_STS_C TO APF_PRG_STS_C';
+  END IF;
+
+  -- APF_NM → DCD_REQ_TTL
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'APF_NM';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM RENAME COLUMN APF_NM TO DCD_REQ_TTL';
+  END IF;
+
+  -- APF_DTL_CONE → DCD_REQ_INF
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'APF_DTL_CONE';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM RENAME COLUMN APF_DTL_CONE TO DCD_REQ_INF';
+  END IF;
+
+  -- RQS_ENO → DCD_REQ_USID
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'RQS_ENO';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM RENAME COLUMN RQS_ENO TO DCD_REQ_USID';
+  END IF;
+
+  -- RQS_DT → DCD_REQ_DTM
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'RQS_DT';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM RENAME COLUMN RQS_DT TO DCD_REQ_DTM';
+  END IF;
+
+  -- RQS_OPNN → RGPR_DCD_REQ_CONE
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'RQS_OPNN';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM RENAME COLUMN RQS_OPNN TO RGPR_DCD_REQ_CONE';
+  END IF;
+END;
+/
+
+-- -----------------------------------------------------------------------------
+-- 2단계: DCD_REQ_TTL 타입 변경 (VARCHAR2(255))
+-- DCD_REQ_USID 타입 변경 (VARCHAR2(14))
+-- RGPR_DCD_REQ_CONE 타입 변경 (VARCHAR2(1000))
+-- -----------------------------------------------------------------------------
+DECLARE
+  v_data_type VARCHAR2(100);
+  v_data_length NUMBER;
+BEGIN
+  -- DCD_REQ_TTL: 기존 크기와 다를 경우만 변경
+  SELECT DATA_TYPE, DATA_LENGTH INTO v_data_type, v_data_length
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'DCD_REQ_TTL';
+  IF v_data_type != 'VARCHAR2' OR v_data_length != 255 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM MODIFY DCD_REQ_TTL VARCHAR2(255)';
+  END IF;
+EXCEPTION WHEN NO_DATA_FOUND THEN NULL;
+END;
+/
+
+DECLARE
+  v_data_type VARCHAR2(100);
+  v_data_length NUMBER;
+BEGIN
+  -- DCD_REQ_USID: VARCHAR2(14)
+  SELECT DATA_TYPE, DATA_LENGTH INTO v_data_type, v_data_length
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'DCD_REQ_USID';
+  IF v_data_type != 'VARCHAR2' OR v_data_length != 14 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM MODIFY DCD_REQ_USID VARCHAR2(14)';
+  END IF;
+EXCEPTION WHEN NO_DATA_FOUND THEN NULL;
+END;
+/
+
+DECLARE
+  v_data_type VARCHAR2(100);
+  v_data_length NUMBER;
+BEGIN
+  -- RGPR_DCD_REQ_CONE: VARCHAR2(1000)
+  SELECT DATA_TYPE, DATA_LENGTH INTO v_data_type, v_data_length
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'RGPR_DCD_REQ_CONE';
+  IF v_data_type != 'VARCHAR2' OR v_data_length != 1000 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM MODIFY RGPR_DCD_REQ_CONE VARCHAR2(1000)';
+  END IF;
+EXCEPTION WHEN NO_DATA_FOUND THEN NULL;
+END;
+/
+
+-- -----------------------------------------------------------------------------
+-- 3단계: APF_STS 컬럼 삭제 (라벨 컬럼 — 코드로 동적 계산하므로 불필요)
+-- -----------------------------------------------------------------------------
+DECLARE
+  v_count NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'APF_STS';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM DROP COLUMN APF_STS';
+  END IF;
+END;
+/
+
+-- -----------------------------------------------------------------------------
+-- 4단계: DCD_REQ_BBR_C 신규 컬럼 추가
+-- -----------------------------------------------------------------------------
+DECLARE
+  v_count NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'DCD_REQ_BBR_C';
+  IF v_count = 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM ADD DCD_REQ_BBR_C VARCHAR2(3)';
+  END IF;
+END;
+/
+
+-- -----------------------------------------------------------------------------
+-- 5단계: APF_PRG_STS_C 코드값 3자리 → 2자리 전환
+-- 001→01, 002→02, 003→03, 004→04
+-- -----------------------------------------------------------------------------
+UPDATE TPRMPP_CAPPLM SET APF_PRG_STS_C = '01' WHERE APF_PRG_STS_C = '001';
+UPDATE TPRMPP_CAPPLM SET APF_PRG_STS_C = '02' WHERE APF_PRG_STS_C = '002';
+UPDATE TPRMPP_CAPPLM SET APF_PRG_STS_C = '03' WHERE APF_PRG_STS_C = '003';
+UPDATE TPRMPP_CAPPLM SET APF_PRG_STS_C = '04' WHERE APF_PRG_STS_C = '004';
+COMMIT;
+
+-- APF_PRG_STS_C 길이 축소 (VARCHAR2(3) → VARCHAR2(2))
+DECLARE
+  v_data_length NUMBER;
+BEGIN
+  SELECT DATA_LENGTH INTO v_data_length
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLM' AND COLUMN_NAME = 'APF_PRG_STS_C';
+  IF v_data_length > 2 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLM MODIFY APF_PRG_STS_C VARCHAR2(2) NOT NULL';
+  END IF;
+EXCEPTION WHEN NO_DATA_FOUND THEN NULL;
+END;
+/
+
+-- -----------------------------------------------------------------------------
+-- 6단계: 공통코드(TPRMPP_CCODEM) APF_STS 코드값 2자리 신규 삽입 및 3자리 비활성화
+-- -----------------------------------------------------------------------------
+-- 기존 3자리 코드 비활성화 (DEL_YN='Y')
+UPDATE TPRMPP_CCODEM
+   SET DEL_YN = 'Y', LST_CHG_DTM = SYSDATE
+ WHERE C_ID = 'APF_STS'
+   AND C_CD IN ('001', '002', '003', '004')
+   AND DEL_YN = 'N';
+
+-- 2자리 신규 코드 삽입 (없을 경우만)
+MERGE INTO TPRMPP_CCODEM T
+USING (
+  SELECT 'APF_STS' AS C_ID, '01' AS C_CD, '결재중'   AS C_NM, 1 AS SRT_SQN FROM DUAL UNION ALL
+  SELECT 'APF_STS',          '02',          '결재완료', 2                     FROM DUAL UNION ALL
+  SELECT 'APF_STS',          '03',          '반려',     3                     FROM DUAL UNION ALL
+  SELECT 'APF_STS',          '04',          '회수',     4                     FROM DUAL
+) S
+ON (T.C_ID = S.C_ID AND T.C_CD = S.C_CD)
+WHEN NOT MATCHED THEN
+  INSERT (C_ID, C_CD, C_NM, SRT_SQN, DEL_YN, FST_ENR_DTM, LST_CHG_DTM)
+  VALUES (S.C_ID, S.C_CD, S.C_NM, S.SRT_SQN, 'N', SYSDATE, SYSDATE)
+WHEN MATCHED THEN
+  UPDATE SET DEL_YN = 'N', C_NM = S.C_NM, SRT_SQN = S.SRT_SQN, LST_CHG_DTM = SYSDATE;
+
+COMMIT;
+
+-- -----------------------------------------------------------------------------
+-- 7단계: TPRMPP_CAPPLL (로그 테이블) 동기 반영
+-- -----------------------------------------------------------------------------
+DECLARE
+  v_count NUMBER;
+BEGIN
+  -- APF_STS_C → APF_PRG_STS_C
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLL' AND COLUMN_NAME = 'APF_STS_C';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLL RENAME COLUMN APF_STS_C TO APF_PRG_STS_C';
+  END IF;
+
+  -- APF_NM → DCD_REQ_TTL
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLL' AND COLUMN_NAME = 'APF_NM';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLL RENAME COLUMN APF_NM TO DCD_REQ_TTL';
+  END IF;
+
+  -- APF_DTL_CONE → DCD_REQ_INF
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLL' AND COLUMN_NAME = 'APF_DTL_CONE';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLL RENAME COLUMN APF_DTL_CONE TO DCD_REQ_INF';
+  END IF;
+
+  -- RQS_ENO → DCD_REQ_USID
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLL' AND COLUMN_NAME = 'RQS_ENO';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLL RENAME COLUMN RQS_ENO TO DCD_REQ_USID';
+  END IF;
+
+  -- RQS_DT → DCD_REQ_DTM
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLL' AND COLUMN_NAME = 'RQS_DT';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLL RENAME COLUMN RQS_DT TO DCD_REQ_DTM';
+  END IF;
+
+  -- RQS_OPNN → RGPR_DCD_REQ_CONE
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLL' AND COLUMN_NAME = 'RQS_OPNN';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLL RENAME COLUMN RQS_OPNN TO RGPR_DCD_REQ_CONE';
+  END IF;
+
+  -- APF_STS 컬럼 삭제
+  SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+   WHERE TABLE_NAME = 'TPRMPP_CAPPLL' AND COLUMN_NAME = 'APF_STS';
+  IF v_count > 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CAPPLL DROP COLUMN APF_STS';
+  END IF;
+END;
+/
+
+-- CAPPLL APF_PRG_STS_C 코드값 2자리 전환
+UPDATE TPRMPP_CAPPLL SET APF_PRG_STS_C = '01' WHERE APF_PRG_STS_C = '001';
+UPDATE TPRMPP_CAPPLL SET APF_PRG_STS_C = '02' WHERE APF_PRG_STS_C = '002';
+UPDATE TPRMPP_CAPPLL SET APF_PRG_STS_C = '03' WHERE APF_PRG_STS_C = '003';
+UPDATE TPRMPP_CAPPLL SET APF_PRG_STS_C = '04' WHERE APF_PRG_STS_C = '004';
+COMMIT;
