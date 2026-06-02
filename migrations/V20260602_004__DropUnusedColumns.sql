@@ -1,0 +1,171 @@
+-- ============================================================
+-- 삭제후보 컬럼 DROP
+-- 생성: _generate_rename.py (보고서 기반, 멱등). 직접 수정 금지.
+-- ============================================================
+
+-- TPRMPP_BITEML: DROP GCL_DTT
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_BITEML' AND column_name='GCL_DTT';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_BITEML DROP COLUMN GCL_DTT';
+  END IF;
+END;
+/
+
+-- TPRMPP_BRIVGL: DROP IVG_TP
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_BRIVGL' AND column_name='IVG_TP';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_BRIVGL DROP COLUMN IVG_TP';
+  END IF;
+END;
+/
+
+-- TPRMPP_BRIVGL: DROP MARK_ID
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_BRIVGL' AND column_name='MARK_ID';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_BRIVGL DROP COLUMN MARK_ID';
+  END IF;
+END;
+/
+
+-- TPRMPP_BRIVGL: DROP QTD_CONE
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_BRIVGL' AND column_name='QTD_CONE';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_BRIVGL DROP COLUMN QTD_CONE';
+  END IF;
+END;
+/
+
+-- TPRMPP_BRIVGM: DROP IVG_TP
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_BRIVGM' AND column_name='IVG_TP';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_BRIVGM DROP COLUMN IVG_TP';
+  END IF;
+END;
+/
+
+-- TPRMPP_BRIVGM: DROP MARK_ID
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_BRIVGM' AND column_name='MARK_ID';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_BRIVGM DROP COLUMN MARK_ID';
+  END IF;
+END;
+/
+
+-- TPRMPP_BRIVGM: DROP QTD_CONE
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_BRIVGM' AND column_name='QTD_CONE';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_BRIVGM DROP COLUMN QTD_CONE';
+  END IF;
+END;
+/
+
+-- TPRMPP_BTERML: DROP TMN_USG
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_BTERML' AND column_name='TMN_USG';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_BTERML DROP COLUMN TMN_USG';
+  END IF;
+END;
+/
+
+-- TPRMPP_BTERMM: DROP TMN_USG
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_BTERMM' AND column_name='TMN_USG';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_BTERMM DROP COLUMN TMN_USG';
+  END IF;
+END;
+/
+
+-- TPRMPP_CBLBCL: DROP END_YMD
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_CBLBCL' AND column_name='END_YMD';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CBLBCL DROP COLUMN END_YMD';
+  END IF;
+END;
+/
+
+-- TPRMPP_CBLBCL: DROP KD_C
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_CBLBCL' AND column_name='KD_C';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CBLBCL DROP COLUMN KD_C';
+  END IF;
+END;
+/
+
+-- TPRMPP_CBLBCL: DROP PRIT_C
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_CBLBCL' AND column_name='PRIT_C';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CBLBCL DROP COLUMN PRIT_C';
+  END IF;
+END;
+/
+
+-- TPRMPP_CBLBCL: DROP STT_YMD
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_CBLBCL' AND column_name='STT_YMD';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CBLBCL DROP COLUMN STT_YMD';
+  END IF;
+END;
+/
+
+-- TPRMPP_CBLBCM: DROP KD_C
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_CBLBCM' AND column_name='KD_C';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CBLBCM DROP COLUMN KD_C';
+  END IF;
+END;
+/
+
+-- TPRMPP_CBLBCM: DROP PRIT_C
+DECLARE
+  has_col NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO has_col FROM user_tab_columns WHERE table_name='TPRMPP_CBLBCM' AND column_name='PRIT_C';
+  IF has_col=1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CBLBCM DROP COLUMN PRIT_C';
+  END IF;
+END;
+/
+
+COMMIT;
