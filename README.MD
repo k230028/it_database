@@ -152,10 +152,23 @@ SQL> GRANT READ, WRITE ON DIRECTORY MY_DUMP_DIR TO ITPAPP;
 ```
 
 # 2. 가져오기
-C:\it\it_database>impdp parfile=import.par
+C:\it>impdp parfile=.\it_database\import.par
 
 ## 2.1 데이티만 가져오기
-C:\it\it_database>impdp parfile=import_data_only.par
+C:\it>impdp parfile=.\it_database\import_data_only.par
 
 # 3. 내보내기
-C:\it\it_database>expdp parfile=export.par
+C:\it>expdp parfile=.\it_database\export.par
+
+## 3.1 라이브 DDL 새로 생성
+아래 명령은 현재 `ITPAPP` 스키마의 전체 DDL을 조회해 `ITPAPP_DDL_live.sql`을 매번 새로 생성합니다.
+
+```powershell
+C:\it>.\it_database\export-ddl-live.ps1
+```
+
+접속 정보가 다른 경우 인자로 오버라이드합니다.
+
+```powershell
+C:\it>.\it_database\export-ddl-live.ps1 -HostName 127.0.0.1 -Port 1521 -ServiceName XEPDB1 -Username ITPAPP -Password "kdb1234!!"
+```
