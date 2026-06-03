@@ -32,6 +32,57 @@ C:\it>.\it_database\connect-db.bat
 
 기본 접속 대상은 `ITPAPP@127.0.0.1:1521/XEPDB1`이며, Spring Boot 개발 설정과 동일합니다.
 
+#### VARCHAR2 4000자 초과 사용 설정(MAX_STRING_SIZE=EXTENDED)
+`VARCHAR2(4000)`을 초과하는 컬럼(예: `VARCHAR2(6000 CHAR)`)을 사용하려면 Oracle DB 전체 설정을 `MAX_STRING_SIZE=EXTENDED`로 전환해야 합니다.
+이 작업은 SYSDBA 권한과 DB 재기동이 필요하며, 전환 후 `STANDARD`로 되돌릴 수 없으므로 로컬 개발 DB 또는 DBA 승인된 환경에서만 수행합니다.
+
+현재 설정을 확인합니다.
+```sql
+SQL> sqlplus / as sysdba
+
+SQL> SELECT name, value FROM v$parameter WHERE name = 'max_string_size';
+SQL> SELECT name, open_mode FROM v$pdbs;
+```
+
+CDB 루트에서 SPFILE 설정을 변경하고 upgrade 모드로 재기동합니다.
+```sql
+SQL> ALTER SYSTEM SET max_string_size = EXTENDED SCOPE = SPFILE;
+SQL> SHUTDOWN IMMEDIATE;
+SQL> STARTUP UPGRADE;
+SQL> ALTER PLUGGABLE DATABASE XEPDB1 OPEN UPGRADE;
+SQL> ALTER SESSION SET CONTAINER = XEPDB1;
+SQL> @?/rdbms/admin/utl32k.sql
+```
+
+`utl32k.sql` 실행이 끝나면 CDB 루트로 돌아가 정상 모드로 재기동합니다.
+```sql
+SQL> ALTER SESSION SET CONTAINER = CDB$ROOT;
+SQL> SHUTDOWN IMMEDIATE;
+SQL> STARTUP;
+SQL> ALTER PLUGGABLE DATABASE ALL OPEN;
+```
+
+전환 결과를 확인합니다.
+```sql
+SQL> ALTER SESSION SET CONTAINER = XEPDB1;
+SQL> SELECT name, value FROM v$parameter WHERE name = 'max_string_size';
+
+NAME             VALUE
+---------------- --------
+max_string_size  EXTENDED
+```
+
+전환 후 `utl32k.sql`이 긴 문자열 인덱스를 `UNUSABLE` 상태로 만들 수 있으므로 반드시 점검합니다.
+```sql
+SQL> SELECT owner, index_name, table_name, status
+     FROM dba_indexes
+     WHERE owner = 'ITPAPP'
+       AND status <> 'VALID'
+     ORDER BY table_name, index_name;
+```
+
+키 길이 초과로 재빌드가 불가능한 비고유 보조 인덱스는 삭제 후, 필요 시 prefix/function-based/hash 컬럼 인덱스로 재설계합니다.
+
 #### PDB 또는 CDB 여부 확인 후 PDB가 아닌 경우 PDB로 전환
 ```bash
 SQL> SHOW CON_NAME;
@@ -102,6 +153,9 @@ SQL> GRANT READ, WRITE ON DIRECTORY MY_DUMP_DIR TO ITPAPP;
 
 # 2. 가져오기
 C:\it\it_database>impdp parfile=import.par
+
+## 2.1 데이티만 가져오기
+C:\it\it_database>impdp parfile=import_data_only.par
 
 # 3. 내보내기
 C:\it\it_database>expdp parfile=export.par
