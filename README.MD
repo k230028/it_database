@@ -157,6 +157,9 @@ C:\it>impdp parfile=.\it_database\import.par
 ## 2.1 데이티만 가져오기
 C:\it>impdp parfile=.\it_database\import_data_only.par
 
+## 2.2 스키마만 가져오기
+C:\it>.\it_database\apply-ddl-live.ps1 -DropExisting -StripCollation
+
 # 3. 내보내기
 C:\it>expdp parfile=.\it_database\export.par
 
