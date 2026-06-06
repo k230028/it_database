@@ -1,0 +1,88 @@
+-- HED 헤더 계층 도입: 7개 HED 루트 + CDP 플레이스홀더 삽입 → 기존 루트 reparent
+--   → 전체 MNU_DEP/WHL_MNU_PTH 재계산.
+-- 한글 포함: NLS_LANG=.AL32UTF8 환경에서 실행.
+-- 멱등성: MERGE(WHEN NOT MATCHED) + reparent는 "아직 루트인 비-HED"만 대상으로 하며,
+--          경로/깊이 재계산은 현재 트리 구조로부터 매번 동일 결과를 산출한다.
+SET DEFINE OFF;
+SET SQLBLANKLINES ON;
+
+-- 1) /cdp 라우트 선등록 (LNK FK 전제). CMENUD는 SYS_HRK_MNU_ID 컬럼을 유지한다.
+MERGE INTO TPRMPP_CMENUD t
+USING (SELECT '/cdp' AS SRE_PTH, 'IT/AI CDP 준비중' AS SRE_MNU_NM, '07' AS SYS_HRK_MNU_ID FROM DUAL) s
+ON (t.SRE_PTH = s.SRE_PTH)
+WHEN NOT MATCHED THEN
+  INSERT (SRE_PTH, SRE_MNU_NM, SYS_HRK_MNU_ID, USE_YN, DEL_YN, GUID, GUID_PRG_SNO, FST_ENR_DTM, FST_ENR_USID)
+  VALUES (s.SRE_PTH, s.SRE_MNU_NM, s.SYS_HRK_MNU_ID, 'Y', 'N', RAWTOHEX(SYS_GUID()), 1, SYSDATE, 'SYSTEM');
+
+-- 2) HED 7행 + CDP 플레이스홀더(MCDP0001) 삽입.
+--    SYS_HRK_MNU_ID는 마이그레이션 007에서 드롭되므로 임시값('00'/'07')을 넣는다.
+MERGE INTO TPRMPP_CMENUM t
+USING (
+  SELECT 'MHED0001' AS MNU_ID, CAST(NULL AS VARCHAR2(10)) AS HRK_MNU_ID, '00' AS SYS_HRK_MNU_ID,
+         '사전협의' AS MNU_NM, 'HED' AS MNU_TP_C, CAST(NULL AS VARCHAR2(300)) AS SRE_PTH,
+         10 AS MNU_SOT_SQN_SNO, 'N' AS HID_YN, 1 AS MNU_DEP, '/MHED0001' AS WHL_MNU_PTH FROM DUAL UNION ALL
+  SELECT 'MHED0002', NULL, '00', '사업/예산',  'HED', NULL, 20, 'N', 1, '/MHED0002' FROM DUAL UNION ALL
+  SELECT 'MHED0003', NULL, '00', 'IT/AI CDP', 'HED', NULL, 30, 'N', 1, '/MHED0003' FROM DUAL UNION ALL
+  SELECT 'MHED0004', NULL, '00', 'IT자체감사','HED', NULL, 40, 'N', 1, '/MHED0004' FROM DUAL UNION ALL
+  SELECT 'MHED0005', NULL, '00', '전자결재',  'HED', NULL, 50, 'N', 1, '/MHED0005' FROM DUAL UNION ALL
+  SELECT 'MHED0006', NULL, '00', '게시판',    'HED', NULL, 60, 'N', 1, '/MHED0006' FROM DUAL UNION ALL
+  SELECT 'MHED0007', NULL, '00', '관리자',    'HED', NULL, 70, 'N', 1, '/MHED0007' FROM DUAL UNION ALL
+  -- CDP 플레이스홀더 (준비중 LNK)
+  SELECT 'MCDP0001', 'MHED0003', '07', '준비중', 'LNK', '/cdp', 10, 'N', 2, '/MHED0003/MCDP0001' FROM DUAL
+) s ON (t.MNU_ID = s.MNU_ID)
+WHEN NOT MATCHED THEN
+  INSERT (MNU_ID, HRK_MNU_ID, SYS_HRK_MNU_ID, MNU_NM, MNU_TP_C, SRE_PTH, MNU_SOT_SQN_SNO, HID_YN, MNU_DEP, WHL_MNU_PTH,
+          DEL_YN, GUID, GUID_PRG_SNO, FST_ENR_DTM, FST_ENR_USID)
+  VALUES (s.MNU_ID, s.HRK_MNU_ID, s.SYS_HRK_MNU_ID, s.MNU_NM, s.MNU_TP_C, s.SRE_PTH, s.MNU_SOT_SQN_SNO, s.HID_YN, s.MNU_DEP, s.WHL_MNU_PTH,
+          'N', RAWTOHEX(SYS_GUID()), 1, SYSDATE, 'SYSTEM');
+
+-- 3) 관리자 헤더 권한 매핑 (MHED0007 → ITPAD001). 일반 사용자에게 헤더 자체가 숨겨진다.
+MERGE INTO TPRMPP_CMENUA t
+USING (SELECT 'MHED0007' AS MNU_ID, 'ITPAD001' AS ATH_ID FROM DUAL) s
+ON (t.MNU_ID = s.MNU_ID AND t.ATH_ID = s.ATH_ID)
+WHEN NOT MATCHED THEN
+  INSERT (MNU_ID, ATH_ID, DEL_YN, GUID, GUID_PRG_SNO, FST_ENR_DTM, FST_ENR_USID)
+  VALUES (s.MNU_ID, s.ATH_ID, 'N', RAWTOHEX(SYS_GUID()), 1, SYSDATE, 'SYSTEM');
+
+-- 4) 기존 루트(아직 HRK_MNU_ID가 NULL인 비-HED 노드)를 해당 HED 밑으로 reparent.
+--    이미 reparent 된 경우 HRK_MNU_ID가 채워져 있어 재실행 시 영향 없음(멱등).
+UPDATE TPRMPP_CMENUM
+   SET HRK_MNU_ID = CASE SYS_HRK_MNU_ID
+                      WHEN '01' THEN 'MHED0002'
+                      WHEN '02' THEN 'MHED0004'
+                      WHEN '03' THEN 'MHED0007'
+                      WHEN '04' THEN 'MHED0006'
+                      WHEN '05' THEN 'MHED0001'
+                      WHEN '06' THEN 'MHED0005'
+                    END
+ WHERE HRK_MNU_ID IS NULL
+   AND MNU_ID NOT LIKE 'MHED%'
+   AND DEL_YN = 'N';
+
+-- 5) 전체 트리의 MNU_DEP/WHL_MNU_PTH를 현재 부모 관계로부터 재계산(멱등).
+--    HED 루트는 LEVEL 1/'/MHEDxxxx', 그 자손은 LEVEL/SYS_CONNECT_BY_PATH로 일관 갱신.
+UPDATE TPRMPP_CMENUM m
+   SET (m.MNU_DEP, m.WHL_MNU_PTH) = (
+        SELECT t.LVL, t.PTH
+          FROM (
+            SELECT MNU_ID, LEVEL AS LVL, SYS_CONNECT_BY_PATH(MNU_ID, '/') AS PTH
+              FROM TPRMPP_CMENUM
+             WHERE DEL_YN = 'N'
+             START WITH HRK_MNU_ID IS NULL
+           CONNECT BY PRIOR MNU_ID = HRK_MNU_ID
+          ) t
+         WHERE t.MNU_ID = m.MNU_ID
+       )
+ WHERE m.DEL_YN = 'N'
+   AND EXISTS (
+        SELECT 1 FROM (
+            SELECT MNU_ID
+              FROM TPRMPP_CMENUM
+             WHERE DEL_YN = 'N'
+             START WITH HRK_MNU_ID IS NULL
+           CONNECT BY PRIOR MNU_ID = HRK_MNU_ID
+        ) t2
+         WHERE t2.MNU_ID = m.MNU_ID
+       );
+
+COMMIT;

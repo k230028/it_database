@@ -1,0 +1,19 @@
+-- 메뉴 유형코드에 HED(헤더) 추가, 메뉴 깊이 상한 3 → 4.
+-- HED 계층 도입으로 모든 노드가 깊이 +1 되며 최대 깊이가 4가 된다.
+-- 멱등성: 제약이 존재하면 drop 후 재생성한다.
+DECLARE
+    PROCEDURE drop_con(p_con VARCHAR2) IS
+        v NUMBER;
+    BEGIN
+        SELECT COUNT(*) INTO v FROM USER_CONSTRAINTS WHERE CONSTRAINT_NAME = p_con;
+        IF v > 0 THEN
+            EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CMENUM DROP CONSTRAINT ' || p_con;
+        END IF;
+    END;
+BEGIN
+    drop_con('CK_CMENUM_TP');
+    drop_con('CK_CMENUM_DEP');
+    EXECUTE IMMEDIATE q'[ALTER TABLE TPRMPP_CMENUM ADD CONSTRAINT CK_CMENUM_TP CHECK (MNU_TP_C IN ('LNK','GRP','DYN','HED'))]';
+    EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_CMENUM ADD CONSTRAINT CK_CMENUM_DEP CHECK (MNU_DEP BETWEEN 1 AND 4)';
+END;
+/
