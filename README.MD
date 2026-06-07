@@ -154,7 +154,7 @@ SQL> GRANT READ, WRITE ON DIRECTORY MY_DUMP_DIR TO ITPAPP;
 # 2. 가져오기
 C:\it>impdp parfile=.\it_database\import.par
 
-## 2.1 데이티만 가져오기
+## 2.1 데이터만 가져오기
 C:\it>impdp parfile=.\it_database\import_data_only.par
 
 ## 2.2 스키마만 가져오기
@@ -168,10 +168,4 @@ C:\it>expdp parfile=.\it_database\export.par
 
 ```powershell
 C:\it>.\it_database\export-ddl-live.ps1
-```
-
-접속 정보가 다른 경우 인자로 오버라이드합니다.
-
-```powershell
-C:\it>.\it_database\export-ddl-live.ps1 -HostName 127.0.0.1 -Port 1521 -ServiceName XEPDB1 -Username ITPAPP -Password "kdb1234!!"
 ```
