@@ -152,18 +152,26 @@ SQL> GRANT READ, WRITE ON DIRECTORY MY_DUMP_DIR TO ITPAPP;
 ```
 
 # 2. 가져오기
+```powershell
 C:\it>impdp parfile=.\it_database\import.par
+```
 
-## 2.1 데이터만 가져오기
-C:\it>impdp parfile=.\it_database\import_data_only.par
-
-## 2.2 스키마만 가져오기
+## 2.1 스키마만 가져오기
+```powershell
 C:\it>.\it_database\apply-ddl-live.ps1 -DropExisting -StripCollation
+```
+
+## 2.2 데이터만 가져오기
+```powershell
+C:\it>impdp parfile=.\it_database\import_data_only.par
+```
 
 # 3. 내보내기
+```powershell
 C:\it>expdp parfile=.\it_database\export.par
+```
 
-## 3.1 라이브 DDL 새로 생성
+## 3.1 스키마만 내보내기
 아래 명령은 현재 `ITPAPP` 스키마의 전체 DDL을 조회해 `ITPAPP_DDL_live.sql`을 매번 새로 생성합니다.
 
 ```powershell
