@@ -38,7 +38,7 @@ C:\it>.\it_database\connect-db.bat
 
 현재 설정을 확인합니다.
 ```sql
-SQL> sqlplus / as sysdba
+C:\Users\KDB> sqlplus / as sysdba
 
 SQL> SELECT name, value FROM v$parameter WHERE name = 'max_string_size';
 SQL> SELECT name, open_mode FROM v$pdbs;
