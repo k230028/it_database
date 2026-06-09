@@ -312,6 +312,12 @@ try {
 
     $previousNlsLang = $env:NLS_LANG
     $env:NLS_LANG = $NlsLang
+
+    # sqlplus/SQLcl는 NLS_LANG=AL32UTF8에 따라 UTF-8 바이트를 출력하므로,
+    # 콘솔 출력 인코딩을 UTF-8로 맞춰 한글 주석/메시지가 깨지지 않게 한다.
+    $previousOutputEncoding = [Console]::OutputEncoding
+    [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+
     & $oracleClient -L -S $connectString "@$tempSqlPath"
     if ($LASTEXITCODE -ne 0) {
         throw "DDL apply failed. Check log: $resolvedLogPath"
@@ -320,6 +326,9 @@ try {
 finally {
     if (Get-Variable -Name previousNlsLang -Scope Local -ErrorAction SilentlyContinue) {
         $env:NLS_LANG = $previousNlsLang
+    }
+    if (Get-Variable -Name previousOutputEncoding -Scope Local -ErrorAction SilentlyContinue) {
+        [Console]::OutputEncoding = $previousOutputEncoding
     }
     if (Test-Path -LiteralPath $tempSqlPath) {
         Remove-Item -LiteralPath $tempSqlPath -Force
