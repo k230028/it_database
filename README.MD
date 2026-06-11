@@ -125,6 +125,8 @@ SQL> ALTER SESSION SET "_ORACLE_SCRIPT" = true;
 #### 스키마가 없는 경우 스키마 생성
 접속 계정(`ITPAPP`)과 객체 소유 스키마(`ITPOWN`)를 모두 생성합니다.
 ```bash
+SQL> ALTER SESSION SET CONTAINER = XEPDB1;
+
 SQL> CREATE USER ITPAPP IDENTIFIED BY "kdb1234!!";
 
 사용자가 생성되었습니다.
