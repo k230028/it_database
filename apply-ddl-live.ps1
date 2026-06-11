@@ -1,10 +1,12 @@
 param(
     [string]$HostName = "127.0.0.1",
-    [int]$Port = 1521,
+    [int]$Port = 11521,
     [string]$ServiceName = "XEPDB1",
     [string]$Username = "ITPAPP",
     [string]$Password = "kdb1234!!",
-    [string]$DdlPath = (Join-Path $PSScriptRoot "ITPAPP_DDL_live.sql"),
+    # 객체 소유 스키마 — 접속 계정(ITPAPP)과 분리. 전 환경 공통으로 ITPOWN이 객체를 소유한다.
+    [string]$Schema = "ITPOWN",
+    [string]$DdlPath = (Join-Path $PSScriptRoot "ITPOWN_DDL_live.sql"),
     [string]$LogPath = (Join-Path $PSScriptRoot "apply-ddl-live.log"),
     [ValidateSet("auto", "sqlplus", "sql")]
     [string]$Client = "auto",
@@ -91,7 +93,7 @@ function Split-InlineForeignKeys {
             $foreignKeyLines.Add($line.TrimEnd())
 
             if ($line -match '\bENABLE\b') {
-                $statement = "ALTER TABLE ""$Username"".""$currentTable"" ADD " + (($foreignKeyLines | ForEach-Object { $_.Trim() }) -join [Environment]::NewLine) + ";"
+                $statement = "ALTER TABLE ""$Schema"".""$currentTable"" ADD " + (($foreignKeyLines | ForEach-Object { $_.Trim() }) -join [Environment]::NewLine) + ";"
                 $foreignKeyStatements.Add($statement)
                 $skipForeignKey = $false
             }
@@ -164,7 +166,7 @@ $requiresExtendedStringSize = $sourceDdlText -match '\bCOLLATE\b'
 
 if ($DropExisting) {
     $dropBlock = @"
-PROMPT Dropping existing objects in $Username
+PROMPT Dropping existing objects in $Schema
 
 DECLARE
     PROCEDURE drop_object(p_sql IN VARCHAR2) IS
@@ -177,8 +179,9 @@ DECLARE
 BEGIN
     FOR item IN (
         SELECT object_type, object_name
-        FROM user_objects
-        WHERE object_name NOT LIKE 'BIN$%'
+        FROM all_objects
+        WHERE owner = UPPER('$Schema')
+          AND object_name NOT LIKE 'BIN$%'
           AND object_type IN (
               'VIEW',
               'MATERIALIZED VIEW',
@@ -206,9 +209,9 @@ BEGIN
         END
     ) LOOP
         IF item.object_type = 'TABLE' THEN
-            drop_object('DROP TABLE "' || item.object_name || '" CASCADE CONSTRAINTS PURGE');
+            drop_object('DROP TABLE "' || UPPER('$Schema') || '"."' || item.object_name || '" CASCADE CONSTRAINTS PURGE');
         ELSE
-            drop_object('DROP ' || item.object_type || ' "' || item.object_name || '"');
+            drop_object('DROP ' || item.object_type || ' "' || UPPER('$Schema') || '"."' || item.object_name || '"');
         END IF;
     END LOOP;
 END;
@@ -278,9 +281,9 @@ WHENEVER SQLERROR EXIT SQL.SQLCODE
 SPOOL "$resolvedLogPath"
 
 PROMPT Applying DDL file: $resolvedDdlPath
-PROMPT Target schema: $Username@$HostName`:$Port/$ServiceName
+PROMPT Target schema: $Schema (connect: $Username@$HostName`:$Port/$ServiceName)
 
-ALTER SESSION SET CURRENT_SCHEMA = "$Username";
+ALTER SESSION SET CURRENT_SCHEMA = "$Schema";
 
 $maxStringSizeCheck
 $dropBlock

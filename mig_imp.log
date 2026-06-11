@@ -1,0 +1,98 @@
+;;; 
+Import: Release 21.0.0.0.0 - Production on 목 6월 11 22:24:43 2026
+Version 21.3.0.0.0
+
+Copyright (c) 1982, 2021, Oracle and/or its affiliates.  All rights reserved.
+;;; 
+접속 대상: Oracle Database 21c Express Edition Release 21.0.0.0.0 - Production
+마스터 테이블 "ITPAPP"."SYS_IMPORT_FULL_01"이(가) 성공적으로 로드됨/로드 취소됨
+"ITPAPP"."SYS_IMPORT_FULL_01" 시작 중: ITPAPP/********@127.0.0.1:11521/XEPDB1 DIRECTORY=MY_DUMP_DIR DUMPFILE=MIG_ITPOWN.DMP LOGFILE=mig_imp.log REMAP_SCHEMA=ITPAPP:ITPOWN 
+객체 유형 SCHEMA_EXPORT/SYSTEM_GRANT 처리 중
+객체 유형 SCHEMA_EXPORT/ROLE_GRANT 처리 중
+객체 유형 SCHEMA_EXPORT/DEFAULT_ROLE 처리 중
+객체 유형 SCHEMA_EXPORT/PRE_SCHEMA/PROCACT_SCHEMA 처리 중
+객체 유형 SCHEMA_EXPORT/SEQUENCE/SEQUENCE 처리 중
+객체 유형 SCHEMA_EXPORT/TABLE/TABLE 처리 중
+객체 유형 SCHEMA_EXPORT/TABLE/TABLE_DATA 처리 중
+. . "ITPOWN"."TPRMPP_CCODEM"                    43.14 KB     185행이 임포트됨
+. . "ITPOWN"."TPRMPP_CFILEM"                    26.17 KB      60행이 임포트됨
+. . "ITPOWN"."TPRMPP_BESTIM"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BRDOCM"                    668.1 KB      26행이 임포트됨
+. . "ITPOWN"."TPRMPP_CRTOKM"                    10.82 KB       5행이 임포트됨
+. . "ITPOWN"."TPRMPP_CMENUL"                    15.13 KB       7행이 임포트됨
+. . "ITPOWN"."TPRMPP_BCHKLC"                    10.16 KB       6행이 임포트됨
+. . "ITPOWN"."TPRMPP_BSCHDL"                    17.01 KB      40행이 임포트됨
+. . "ITPOWN"."TPRMPP_BMQNAL"                    12.75 KB       2행이 임포트됨
+. . "ITPOWN"."TPRMPP_CMENUD"                     17.5 KB      70행이 임포트됨
+. . "ITPOWN"."TPRMPP_CCMMTM"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BRIVGM"                    11.63 KB       3행이 임포트됨
+. . "ITPOWN"."TPRMPP_CAPPLM"                    63.34 KB       2행이 임포트됨
+. . "ITPOWN"."TPRMPP_BCONTM"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BCMMTL"                    11.89 KB       6행이 임포트됨
+. . "ITPOWN"."TPRMPP_BASCTL"                    14.99 KB       8행이 임포트됨
+. . "ITPOWN"."TPRMPP_CORGNI"                    10.94 KB      12행이 임포트됨
+. . "ITPOWN"."TPRMPP_BGDOCL"                    129.0 KB       5행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPLANM"                    122.1 KB       2행이 임포트됨
+. . "ITPOWN"."TPRMPP_BESTTM"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BEVALL"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BDELIL"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BCOSTM"                    22.57 KB      27행이 임포트됨
+. . "ITPOWN"."TPRMPP_CBLBMM"                    12.24 KB       2행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPERFM"                    10.89 KB       1행이 임포트됨
+. . "ITPOWN"."TPRMPP_BRSLTL"                    11.30 KB       1행이 임포트됨
+. . "ITPOWN"."TPRMPP_CDECIM"                    11.48 KB       3행이 임포트됨
+. . "ITPOWN"."TPRMPP_BTERML"                    35.44 KB      90행이 임포트됨
+. . "ITPOWN"."TPRMPP_CUSERI"                    18.61 KB      25행이 임포트됨
+. . "ITPOWN"."TPRMPP_CMENUA"                    12.31 KB      43행이 임포트됨
+. . "ITPOWN"."TPRMPP_CBLBCM"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_CAPPLL"                    117.3 KB       4행이 임포트됨
+. . "ITPOWN"."TPRMPP_CCMMTL"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BCMMTM"                    10.01 KB       6행이 임포트됨
+. . "ITPOWN"."TPRMPP_CCODEL"                    15.85 KB       4행이 임포트됨
+. . "ITPOWN"."TPRMPP_BASCTM"                    12.21 KB       1행이 임포트됨
+. . "ITPOWN"."TPRMPP_CLOGNH"                    17.16 KB      52행이 임포트됨
+. . "ITPOWN"."TPRMPP_BRDOCL"                    321.4 KB      24행이 임포트됨
+. . "ITPOWN"."TPRMPP_BTERMM"                    35.71 KB     115행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPAYML"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BESTTL"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPERFL"                    12.69 KB       1행이 임포트됨
+. . "ITPOWN"."TPRMPP_BRIVGL"                    13.46 KB       3행이 임포트됨
+. . "ITPOWN"."TPRMPP_BBUGTL"                      141 KB     827행이 임포트됨
+. . "ITPOWN"."TPRMPP_BCHKLL"                    11.95 KB       6행이 임포트됨
+. . "ITPOWN"."TPRMPP_BCHKLM"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BESTIL"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPROJL"                    27.10 KB       3행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPOVWM"                    13.07 KB       1행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPQNAL"                    12.62 KB       1행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPLANA"                    39.94 KB     302행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPAYTL"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BRSLTM"                    9.515 KB       1행이 임포트됨
+. . "ITPOWN"."TPRMPP_CINFMM"                    13.30 KB       4행이 임포트됨
+. . "ITPOWN"."TPRMPP_CBLBCL"                    38.85 KB     147행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPOVWL"                    14.85 KB       1행이 임포트됨
+. . "ITPOWN"."TPRMPP_BMQNAM"                    10.82 KB       1행이 임포트됨
+. . "ITPOWN"."TPRMPP_BSCHDM"                    14.42 KB      40행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPAYMM"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BBUGTM"                    69.95 KB     439행이 임포트됨
+. . "ITPOWN"."TPRMPP_BDELIM"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPLANL"                    815.0 KB      29행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPQNAM"                    10.82 KB       1행이 임포트됨
+. . "ITPOWN"."TPRMPP_CAPPLA"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPROJM"                    32.78 KB      23행이 임포트됨
+. . "ITPOWN"."TPRMPP_BCOSTL"                    27.50 KB      39행이 임포트됨
+. . "ITPOWN"."TPRMPP_CROLEI"                    10.65 KB      19행이 임포트됨
+. . "ITPOWN"."TPRMPP_BCONTL"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_BGDOCM"                    34.29 KB       3행이 임포트됨
+. . "ITPOWN"."TPRMPP_BEVALM"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_CAUTHI"                    9.906 KB       4행이 임포트됨
+. . "ITPOWN"."TPRMPP_BITEML"                    30.20 KB      68행이 임포트됨
+. . "ITPOWN"."TPRMPP_BITEMM"                    26.73 KB      66행이 임포트됨
+. . "ITPOWN"."TPRMPP_CMENUM"                    27.82 KB      98행이 임포트됨
+. . "ITPOWN"."TPRMPP_BPAYTM"                        0 KB       0행이 임포트됨
+. . "ITPOWN"."TPRMPP_CBLBML"                        0 KB       0행이 임포트됨
+객체 유형 SCHEMA_EXPORT/TABLE/COMMENT 처리 중
+객체 유형 SCHEMA_EXPORT/VIEW/VIEW 처리 중
+객체 유형 SCHEMA_EXPORT/TABLE/INDEX/INDEX 처리 중
+객체 유형 SCHEMA_EXPORT/TABLE/CONSTRAINT/CONSTRAINT 처리 중
+"ITPAPP"."SYS_IMPORT_FULL_01" 작업이 목 6월 11 22:25:17 2026 elapsed 0 00:00:31에서 성공적으로 완료됨
+

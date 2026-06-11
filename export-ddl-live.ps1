@@ -1,10 +1,12 @@
 param(
     [string]$HostName = "127.0.0.1",
-    [int]$Port = 1521,
+    [int]$Port = 11521,
     [string]$ServiceName = "XEPDB1",
     [string]$Username = "ITPAPP",
     [string]$Password = "kdb1234!!",
-    [string]$OutputPath = (Join-Path $PSScriptRoot "ITPAPP_DDL_live.sql"),
+    # 객체 소유 스키마 — 접속 계정(ITPAPP)과 분리. 전 환경 공통으로 ITPOWN이 객체를 소유한다.
+    [string]$Schema = "ITPOWN",
+    [string]$OutputPath = (Join-Path $PSScriptRoot "ITPOWN_DDL_live.sql"),
     [ValidateSet("auto", "sqlplus", "sql")]
     [string]$Client = "auto"
 )
@@ -62,7 +64,7 @@ WHENEVER SQLERROR EXIT SQL.SQLCODE
 SPOOL "$escapedOutputPath"
 
 DECLARE
-    v_schema VARCHAR2(128) := UPPER('$Username');
+    v_schema VARCHAR2(128) := UPPER('$Schema');
     v_generated_at VARCHAR2(64) := '$generatedAt';
 
     PROCEDURE put_line(p_text IN VARCHAR2) IS
@@ -120,7 +122,7 @@ BEGIN
     DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'REF_CONSTRAINTS', TRUE);
     DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'CONSTRAINTS_AS_ALTER', FALSE);
 
-    put_line('-- ITPAPP schema DDL backup (comments included)');
+    put_line('-- ' || v_schema || ' schema DDL backup (comments included)');
     put_line('-- Generated at: ' || v_generated_at);
     put_line('-- Source: ' || SYS_CONTEXT('USERENV', 'DB_NAME') || '/' || SYS_CONTEXT('USERENV', 'SERVICE_NAME') || ', user=' || v_schema);
     put_line('');
@@ -283,7 +285,7 @@ EXIT
 try {
     [System.IO.File]::WriteAllText($tempSqlPath, $sql, [System.Text.Encoding]::ASCII)
 
-    Write-Host "DDL export started: $Username@$HostName`:$Port/$ServiceName"
+    Write-Host "DDL export started: $Username@$HostName`:$Port/$ServiceName (schema: $Schema)"
     $previousNlsLang = $env:NLS_LANG
     $env:NLS_LANG = "KOREAN_KOREA.AL32UTF8"
     try {
