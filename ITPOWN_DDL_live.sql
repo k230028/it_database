@@ -1,5 +1,5 @@
 ﻿-- ITPOWN schema DDL backup (comments included)
--- Generated at: 2026-06-12 15:40:57 +09:00
+-- Generated at: 2026-06-12 22:50:10 +09:00
 -- Source: XEPDB1/xepdb1, user=ITPOWN
 -- DBMS_METADATA transform configured
 -- TABLES
