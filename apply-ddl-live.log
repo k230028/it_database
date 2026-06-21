@@ -1,0 +1,11 @@
+Applying DDL file: C:/Users/gonna/AppData/Local/Temp/itpapp_ddl_live_086864f9e8cf4808814eccf6a80b9734.sql
+Target schema: ITPOWN (connect: ITPAPP@127.0.0.1:11521/XEPDB1)
+
+세션이 변경되었습니다.
+
+경   과: 00:00:00.00
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+경   과: 00:00:00.06
+DDL apply completed.

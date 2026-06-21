@@ -182,6 +182,22 @@ C:\it>.\it_database\apply-ddl-live.ps1 -DropExisting -StripCollation
 C:\it>impdp parfile=.\it_database\import_data_only.par
 ```
 
+## 2.3 Flyway 마이그레이션
+로컬 증분 DDL/DML 변경은 Spring Boot 백엔드의 `local-ext`/`local-int` 프로파일 기동 시 Flyway가 적용합니다.
+`dev`/`prod` DB는 DBA가 마이그레이션 스크립트를 검토하고 수동 적용합니다.
+백엔드 Gradle `processResources`가 이 디렉토리의 `migrations/V*.sql` 파일을
+`classpath:db/migration`으로 복사하고, 애플리케이션이 시작될 때 신규 버전만 실행합니다.
+
+```text
+it_database/migrations/V{YYYYMMDD_NNN}__{CamelCaseDescription}.sql
+```
+
+- 기존 non-empty 로컬 `ITPOWN` 스키마는 `baseline-version=20260620.001`로 기준선을 등록하고 이후 신규 스크립트부터 적용합니다.
+- 빈 스키마는 `migrations/`의 전체 V* 스크립트를 버전 순서대로 적용합니다.
+- 운영처럼 애플리케이션 계정(`ITPAPP`)에 DDL 권한을 주지 않는 환경은 백엔드 실행 시 `FLYWAY_USER`/`FLYWAY_PASSWORD`에 DDL 권한 계정을 지정합니다.
+- 이미 적용된 스크립트는 Flyway 체크섬 추적 대상이므로 수정하지 않습니다. 변경이 필요하면 새 버전 파일을 추가합니다.
+- `apply-ddl-live.ps1`은 스키마 부트스트랩/수동 재생성용 도구이며, 평상시 증분 변경 경로는 Flyway입니다.
+
 # 3. 내보내기
 ```powershell
 C:\it>expdp parfile=.\it_database\export.par
