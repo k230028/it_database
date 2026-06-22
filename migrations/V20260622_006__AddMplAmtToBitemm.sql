@@ -1,0 +1,23 @@
+-- V20260622_006__AddMplAmtToBitemm.sql
+-- 정보화사업 품목(TPRMPP_BITEMM) 및 로그(TPRMPP_BITEML)에 예정금액 컬럼 추가.
+--   MPL_AMT NUMBER(18,3) DEFAULT 0 NOT NULL — 품목금액(AMT) 중 익년 이후 예정분.
+-- 기존 행은 DEFAULT 0 으로 백필되므로 별도 DML 불필요. (it_backend/CLAUDE.md §5.2.1)
+-- 멱등성: 컬럼 존재 시 ADD 를 건너뛴다.
+DECLARE
+    FUNCTION col_exists(p_table VARCHAR2, p_col VARCHAR2) RETURN BOOLEAN IS
+        n NUMBER;
+    BEGIN
+        SELECT COUNT(*) INTO n FROM ALL_TAB_COLS
+         WHERE OWNER = SYS_CONTEXT('USERENV','CURRENT_SCHEMA')
+           AND TABLE_NAME = p_table AND COLUMN_NAME = p_col;
+        RETURN n > 0;
+    END;
+BEGIN
+    IF NOT col_exists('TPRMPP_BITEMM', 'MPL_AMT') THEN
+        EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_BITEMM ADD (MPL_AMT NUMBER(18,3) DEFAULT 0 NOT NULL)';
+    END IF;
+    IF NOT col_exists('TPRMPP_BITEML', 'MPL_AMT') THEN
+        EXECUTE IMMEDIATE 'ALTER TABLE TPRMPP_BITEML ADD (MPL_AMT NUMBER(18,3) DEFAULT 0 NOT NULL)';
+    END IF;
+END;
+/
