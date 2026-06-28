@@ -167,6 +167,72 @@ SQL> GRANT READ, WRITE ON DIRECTORY MY_DUMP_DIR TO ITPAPP;
 권한이 부여되었습니다.
 ```
 
+# 3. 리스너 포트 변경 가이드 (예: 1521 → 11521)
+
+기본 리스너 포트(1521)를 다른 포트로 변경하는 절차입니다. DB 쪽 변경과 애플리케이션 설정 변경을 모두 수행해야 합니다.
+
+#### 사전 확인: 대상 포트 사용 여부
+```powershell
+netstat -ano | findstr :11521
+```
+출력이 없으면 해당 포트는 사용 가능합니다.
+
+#### 3.1 listener.ora 수정
+파일 위치는 `lsnrctl status` 출력의 "리스너 매개변수 파일" 항목으로 확인합니다.
+Oracle 21c는 read-only Oracle Home 구조이므로 네트워크 설정이 `dbhomeXE\network\admin`이 아니라
+`C:\app\KDB\product\21c\homes\OraDB21Home1\network\admin\listener.ora`에 있습니다. (`dbhomeXE` 쪽에 파일을 만들어도 리스너가 읽지 않습니다.)
+
+```
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 11521))
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
+    )
+  )
+```
+
+같은 디렉토리의 `tnsnames.ora`에 `PORT = 1521`이 있으면 함께 수정합니다.
+
+#### 3.2 리스너 재시작
+관리자 권한 터미널에서 실행합니다.
+```powershell
+lsnrctl stop
+lsnrctl start
+```
+또는 Windows 서비스(`OracleOraDB21Home1TNSListener`, 환경에 따라 이름이 다를 수 있음)를 재시작합니다.
+
+#### 3.3 LOCAL_LISTENER 설정 및 서비스 등록
+리스너가 기본 포트(1521)가 아니면 DB가 리스너에 자동 등록되지 않으므로 SYSDBA로 설정합니다.
+```sql
+C:\Users\KDB> sqlplus / as sysdba
+
+SQL> ALTER SYSTEM SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=11521))' SCOPE=BOTH;
+SQL> ALTER SYSTEM REGISTER;
+```
+
+#### 3.4 변경 확인
+```powershell
+lsnrctl status
+```
+출력에서 `PORT=11521`과 `Service "xepdb1"` 등록을 확인합니다. 서비스가 보이지 않으면 1~2분 대기 후 `ALTER SYSTEM REGISTER;`를 다시 실행합니다.
+
+접속 테스트:
+```powershell
+C:\it>.\it_database\connect-db.ps1 -Port 11521
+```
+
+#### 3.5 애플리케이션 설정 변경
+포트를 변경하면 저장소에서 1521을 참조하는 곳도 함께 수정해야 합니다.
+
+| 대상 | 위치 | 변경 내용 |
+|------|------|----------|
+| 백엔드 datasource | `it_backend/src/main/resources/application.properties` | `jdbc:oracle:thin:@127.0.0.1:1521/XEPDB1`의 포트 |
+| DB 접속 스크립트 | `it_database/connect-db.ps1` | 기본 `-Port` 값 (수정 없이 `-Port 11521` 오버라이드도 가능) |
+| 문서 | 루트 `CLAUDE.md`, `AGENTS.md`, `README.md` | 접속 정보 표기 (`127.0.0.1:1521/XEPDB1`) |
+
+
+
 # 2. 가져오기
 ```powershell
 C:\it>impdp parfile=.\it_database\import.par
@@ -198,79 +264,15 @@ it_database/migrations/V{YYYYMMDD_NNN}__{CamelCaseDescription}.sql
 - 이미 적용된 스크립트는 Flyway 체크섬 추적 대상이므로 수정하지 않습니다. 변경이 필요하면 새 버전 파일을 추가합니다.
 - `apply-ddl-live.ps1`은 스키마 부트스트랩/수동 재생성용 도구이며, 평상시 증분 변경 경로는 Flyway입니다.
 
-# 3. 내보내기
+# 4. 내보내기
 ```powershell
 C:\it>expdp parfile=.\it_database\export.par
 ```
 
-## 3.1 스키마만 내보내기
+## 4.1 스키마만 내보내기
 아래 명령은 현재 `ITPOWN` 스키마의 전체 DDL을 조회해 `ITPOWN_DDL_live.sql`을 매번 새로 생성합니다.
 (접속은 `ITPAPP`, 대상 스키마는 `-Schema` 파라미터로 오버라이드 가능)
 
 ```powershell
 C:\it>.\it_database\export-ddl-live.ps1
 ```
-
-# 4. 리스너 포트 변경 가이드 (예: 1521 → 11521)
-
-기본 리스너 포트(1521)를 다른 포트로 변경하는 절차입니다. DB 쪽 변경과 애플리케이션 설정 변경을 모두 수행해야 합니다.
-
-#### 사전 확인: 대상 포트 사용 여부
-```powershell
-netstat -ano | findstr :11521
-```
-출력이 없으면 해당 포트는 사용 가능합니다.
-
-#### 4.1 listener.ora 수정
-파일 위치는 `lsnrctl status` 출력의 "리스너 매개변수 파일" 항목으로 확인합니다.
-Oracle 21c는 read-only Oracle Home 구조이므로 네트워크 설정이 `dbhomeXE\network\admin`이 아니라
-`C:\app\KDB\product\21c\homes\OraDB21Home1\network\admin\listener.ora`에 있습니다. (`dbhomeXE` 쪽에 파일을 만들어도 리스너가 읽지 않습니다.)
-
-```
-LISTENER =
-  (DESCRIPTION_LIST =
-    (DESCRIPTION =
-      (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 11521))
-      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
-    )
-  )
-```
-
-같은 디렉토리의 `tnsnames.ora`에 `PORT = 1521`이 있으면 함께 수정합니다.
-
-#### 4.2 리스너 재시작
-관리자 권한 터미널에서 실행합니다.
-```powershell
-lsnrctl stop
-lsnrctl start
-```
-또는 Windows 서비스(`OracleOraDB21Home1TNSListener`, 환경에 따라 이름이 다를 수 있음)를 재시작합니다.
-
-#### 4.3 LOCAL_LISTENER 설정 및 서비스 등록
-리스너가 기본 포트(1521)가 아니면 DB가 리스너에 자동 등록되지 않으므로 SYSDBA로 설정합니다.
-```sql
-C:\Users\KDB> sqlplus / as sysdba
-
-SQL> ALTER SYSTEM SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=11521))' SCOPE=BOTH;
-SQL> ALTER SYSTEM REGISTER;
-```
-
-#### 4.4 변경 확인
-```powershell
-lsnrctl status
-```
-출력에서 `PORT=11521`과 `Service "xepdb1"` 등록을 확인합니다. 서비스가 보이지 않으면 1~2분 대기 후 `ALTER SYSTEM REGISTER;`를 다시 실행합니다.
-
-접속 테스트:
-```powershell
-C:\it>.\it_database\connect-db.ps1 -Port 11521
-```
-
-#### 4.5 애플리케이션 설정 변경
-포트를 변경하면 저장소에서 1521을 참조하는 곳도 함께 수정해야 합니다.
-
-| 대상 | 위치 | 변경 내용 |
-|------|------|----------|
-| 백엔드 datasource | `it_backend/src/main/resources/application.properties` | `jdbc:oracle:thin:@127.0.0.1:1521/XEPDB1`의 포트 |
-| DB 접속 스크립트 | `it_database/connect-db.ps1` | 기본 `-Port` 값 (수정 없이 `-Port 11521` 오버라이드도 가능) |
-| 문서 | 루트 `CLAUDE.md`, `AGENTS.md`, `README.md` | 접속 정보 표기 (`127.0.0.1:1521/XEPDB1`) |
